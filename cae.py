@@ -48,7 +48,7 @@ from scipy.signal import convolve2d as conv2
 def cae(train,val):
     activation = 'relu'
     
-    input_sig = Input(batch_shape=(None, 16,16,3))
+    input_sig = Input(batch_shape=(None, 64,64,3))
     x = Convolution2D(250, (3,3), activation=tf.keras.layers.LeakyReLU(alpha=0.1), padding='same',
                       kernel_regularizer=regularizers.l2(0.001))(input_sig)
    
@@ -70,7 +70,7 @@ def cae(train,val):
     encoded = Dense(units,activation=tf.keras.layers.LeakyReLU(alpha=0.1))(encoded)
     #encoded = Dense(128)(encoded)
 
-    encoded = Reshape((4, 4, 25))(encoded)
+    encoded = Reshape((16, 16, 25))(encoded)
 
     """
     Encodeder = Model(input_sig, encoded)
@@ -105,7 +105,7 @@ def cae(train,val):
     
     
     autoencoder.fit(train, train
-                    , epochs=50
+                    , epochs=100
                     , batch_size=64
                     , shuffle=False
                     , verbose=1  # 日誌顯示，0為不在標準輸出流輸出日誌信息，1為輸出進度條記錄，2為每個epoch輸出一行記錄
@@ -199,126 +199,202 @@ def cae_predict (test,autoencoder,threshold):
     return y_predict , test_losses
 
 
-trainPath = "D:/AI/QTR_eden/QTR/dataset/train/"
 
+trainPath = "D:/AI/QTR_eden/QTR/dataset/12_pre_lamination_train/"
 trainFilePath = os.listdir(trainPath)
 train_record = []
-
+train_final = []
 for file in trainFilePath:
     train_record.append(file)
 #print(train_record)
-print(len(train_record))
-train_final = []
 for i in range(len(train_record)):
-    imagepath = "D:/AI/QTR_eden/QTR/dataset/train/"+train_record[i]+""
-    #img = cv2.imread("D:/AI/QTR_eden/QTR/dataset/train/"++)
-
-    img = cv2.imread(imagepath)
-    img = cv2.resize(img, (16, 16))
+    imagepath = ""+trainPath+train_record[i]+""
+    img = cv2.imread(imagepath)  #(1800, 3200, 3)
     #print(img.shape)
-    # cv2.imshow("window_name", img)
-
+    img = cv2.resize(img, (320, 320))
+    crop_img = img[80:200, 100:210] # y ,x 
+    img = cv2.resize(crop_img, (64, 64))
+    #cv2.rectangle(img, (100,80), (100 + 110, 80 + 120), (255,0,0), 1)  
+    #cv2.imwrite("D:/AI/QTR_eden/QTR/dataset/lamination_test/"+str(i)+".jpg",img)
+    # cv2.imshow("frame",img)
     # cv2.waitKey(0)
-
-    # # closing all open windows
     # cv2.destroyAllWindows()
     train_final.append(img)
 
 
-valPath = "D:/AI/QTR_eden/QTR/dataset/val/"
-
+valPath = "D:/AI/QTR_eden/QTR/dataset/12_pre_lamination_val/"
 valFilePath = os.listdir(valPath)
 val_record = []
-
+val_final = []
 for file in valFilePath:
     val_record.append(file)
-
-print(len(val_record))
-val_final = []
+#print(train_record)
 for i in range(len(val_record)):
-    imagepath = "D:/AI/QTR_eden/QTR/dataset/val/"+val_record[i]+""
-    #img = cv2.imread("D:/AI/QTR_eden/QTR/dataset/train/"++)
-
+    imagepath = ""+valPath+val_record[i]+""
     img = cv2.imread(imagepath)
-    img = cv2.resize(img, (16, 16))
-    # cv2.imshow("window", img)
-
+    img = cv2.resize(img, (320, 320))
+    crop_img = img[80:200, 100:210] # y ,x 
+    img = cv2.resize(crop_img, (64, 64))
+    # cv2.rectangle(img, (100,80), (100 + 110, 80 + 130), (255,0,0), 1)
+    # cv2.imshow("frame",img)
     # cv2.waitKey(0)
-
-    # # closing all open windows
     # cv2.destroyAllWindows()
     val_final.append(img)
 
-#print(len(val_final))
-x_train = np.array(train_final).reshape(27,16,16,3)
-x_val = np.array(val_final).reshape(3,16,16,3)
+x_train = np.array(train_final).reshape(38,64,64,3)
+x_val = np.array(val_final).reshape(6,64,64,3)
 #print(len(x_train))
 autoencoder,threshold = cae(x_train,x_val)
 
-
-testPath = "D:/AI/QTR_eden/QTR/dataset/test/"
-
+testPath = "D:/AI/QTR_eden/QTR/dataset/12_pre_lamination_test/"
 testFilePath = os.listdir(testPath)
 test_record = []
-
+test_final = []
 for file in testFilePath:
     test_record.append(file)
-
-print(len(test_record))
-test_final = []
+#print(train_record)
 for i in range(len(test_record)):
-    imagepath = "D:/AI/QTR_eden/QTR/dataset/test/"+test_record[i]+""
-    #img = cv2.imread("D:/AI/QTR_eden/QTR/dataset/train/"++)
-    
+    imagepath = ""+testPath+test_record[i]+""
     img = cv2.imread(imagepath)
-    img = cv2.resize(img, (16, 16))
-    # cv2.imshow("window", img)
-
+    img = cv2.resize(img, (320, 320))
+    crop_img = img[80:200, 100:210] # y ,x 
+    img = cv2.resize(crop_img, (64, 64))
+    # cv2.rectangle(img, (100,80), (100 + 110, 80 + 130), (255,0,0), 1)
+    # cv2.imshow("frame",img)
     # cv2.waitKey(0)
-
-    # # closing all open windows
     # cv2.destroyAllWindows()
     test_final.append(img)
-    
-print(test_record)
-x_test = np.array(test_final).reshape(2,16,16,3)
+
+x_test = np.array(test_final).reshape(3,64,64,3)
 #print(x_test)
 result_2 , test_losses_1  = cae_predict(x_test,autoencoder,threshold)
-print(result_2)
+# print(result_2)
 print(test_losses_1)
+print("########################")
+for i in range(len(result_2)):
+    if result_2[i] == 1:
+        print(f"{test_record[i]} is abnormal")
+
+# trainPath = "D:/AI/QTR_eden/QTR/dataset/train/"
+
+# trainFilePath = os.listdir(trainPath)
+# train_record = []
+
+# for file in trainFilePath:
+#     train_record.append(file)
+# #print(train_record)
+# print(len(train_record))
+# train_final = []
+# for i in range(len(train_record)):
+#     imagepath = "D:/AI/QTR_eden/QTR/dataset/train/"+train_record[i]+""
+#     #img = cv2.imread("D:/AI/QTR_eden/QTR/dataset/train/"++)
+
+#     img = cv2.imread(imagepath)
+#     img = cv2.resize(img, (16, 16))
+#     #print(img.shape)
+#     # cv2.imshow("window_name", img)
+
+#     # cv2.waitKey(0)
+
+#     # # closing all open windows
+#     # cv2.destroyAllWindows()
+#     train_final.append(img)
 
 
-#####
-##Evaluate
+# valPath = "D:/AI/QTR_eden/QTR/dataset/val/"
 
-#ground truth
-label = [1,0]
-TP = 0
-FP = 0
-FN = 0
-TN = 0
+# valFilePath = os.listdir(valPath)
+# val_record = []
 
-for z in range(len(result_2)):
-    if result_2[z] == 1 and label[z] == 1:
-        TP = TP + 1
-    elif result_2[z] == 1 and label[z] == 0:
-        FP = FP + 1
-    elif result_2[z] == 0 and label[z] == 1:
-        FN = FN + 1
-    else:
-        TN = TN + 1
+# for file in valFilePath:
+#     val_record.append(file)
+
+# print(len(val_record))
+# val_final = []
+# for i in range(len(val_record)):
+#     imagepath = "D:/AI/QTR_eden/QTR/dataset/val/"+val_record[i]+""
+#     #img = cv2.imread("D:/AI/QTR_eden/QTR/dataset/train/"++)
+
+#     img = cv2.imread(imagepath)
+#     img = cv2.resize(img, (16, 16))
+#     # cv2.imshow("window", img)
+
+#     # cv2.waitKey(0)
+
+#     # # closing all open windows
+#     # cv2.destroyAllWindows()
+#     val_final.append(img)
+
+# #print(len(val_final))
+# x_train = np.array(train_final).reshape(27,16,16,3)
+# x_val = np.array(val_final).reshape(3,16,16,3)
+# #print(len(x_train))
+# autoencoder,threshold = cae(x_train,x_val)
 
 
-Accuracy = (TP + TN) / (TP+FP+FN+TN)
-print('Accuracy:',Accuracy)
+# testPath = "D:/AI/QTR_eden/QTR/dataset/test/"
 
-Recall = TP / (TP+FN)
-print('Recall:',Recall)
+# testFilePath = os.listdir(testPath)
+# test_record = []
 
-Precision = TP / (TP+FP)
-print('Precision:',Precision)
+# for file in testFilePath:
+#     test_record.append(file)
 
-F1_score =  2/ ((1/Precision) + (1/Recall))
-print('F1-score:',F1_score)  
-#####
+# print(len(test_record))
+# test_final = []
+# for i in range(len(test_record)):
+#     imagepath = "D:/AI/QTR_eden/QTR/dataset/test/"+test_record[i]+""
+#     #img = cv2.imread("D:/AI/QTR_eden/QTR/dataset/train/"++)
+    
+#     img = cv2.imread(imagepath)
+#     img = cv2.resize(img, (16, 16))
+#     # cv2.imshow("window", img)
+
+#     # cv2.waitKey(0)
+
+#     # # closing all open windows
+#     # cv2.destroyAllWindows()
+#     test_final.append(img)
+    
+# print(test_record)
+# x_test = np.array(test_final).reshape(2,16,16,3)
+# #print(x_test)
+# result_2 , test_losses_1  = cae_predict(x_test,autoencoder,threshold)
+# print(result_2)
+# print(test_losses_1)
+
+
+# #####
+# ##Evaluate
+
+# #ground truth
+# label = [1,0]
+# TP = 0
+# FP = 0
+# FN = 0
+# TN = 0
+
+# for z in range(len(result_2)):
+#     if result_2[z] == 1 and label[z] == 1:
+#         TP = TP + 1
+#     elif result_2[z] == 1 and label[z] == 0:
+#         FP = FP + 1
+#     elif result_2[z] == 0 and label[z] == 1:
+#         FN = FN + 1
+#     else:
+#         TN = TN + 1
+
+
+# Accuracy = (TP + TN) / (TP+FP+FN+TN)
+# print('Accuracy:',Accuracy)
+
+# Recall = TP / (TP+FN)
+# print('Recall:',Recall)
+
+# Precision = TP / (TP+FP)
+# print('Precision:',Precision)
+
+# F1_score =  2/ ((1/Precision) + (1/Recall))
+# print('F1-score:',F1_score)  
+# #####
 
